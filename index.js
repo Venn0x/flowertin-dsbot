@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const fs = require('fs');
 const Discord = require('discord.js');
 const dotenv = require('dotenv');
@@ -11,14 +12,19 @@ client.commands = new Discord.Collection();
 
 const token = process.env.TOKEN;
 
-const commandFiles = fs
-  .readdirSync('./commands')
-  .filter((file) => file.endsWith('.js'));
+const commandFolders = fs.readdirSync('./commands');
 
-commandFiles.forEach((file) => {
-  const command = require(`./commands/${file}`);
+commandFolders.forEach((folder) => {
+  const commandFiles = fs
+    .readdirSync(`./commands/${folder}`)
+    .filter((file) => file.endsWith('.js'));
 
-  client.commands.set(command.name, command);
+  commandFiles.forEach((file) => {
+    const commandPath = `./commands/${folder}/${file}`;
+    const command = require(commandPath);
+
+    client.commands.set(command.name, command);
+  });
 });
 
 client.once('ready', () => console.log('Bot running!'));
@@ -31,9 +37,17 @@ client.on('message', async (message) => {
   const commandName = args.shift().toLowerCase();
 
   if (!client.commands.has(commandName)) return;
+  const command = client.commands.get(commandName);
 
+  if (command.args && !args.length) {
+    let reply = "You didn't provide any arguments.";
+    if (command.usage) {
+      reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+    }
+    return message.reply(reply);
+  }
   try {
-    client.commands.get(commandName).execute(message, args);
+    command.execute(message, args);
   } catch (error) {
     console.error(error);
     message.reply('there was an error trying to execute that command!');
