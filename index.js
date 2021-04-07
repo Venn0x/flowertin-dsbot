@@ -36,9 +36,16 @@ client.on('message', async (message) => {
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
 
+  //  Checks if command exists.
   if (!client.commands.has(commandName)) return;
   const command = client.commands.get(commandName);
 
+  //  Checks if command is allowed to run in DMs or not, and sends a message accordingly.
+  if (command.guildOnly && message.channel.type === 'dm') {
+    return message.reply("I can't execute that command inside DMs!");
+  }
+
+  //  Checks if command requires arguments.
   if (command.args && !args.length) {
     let reply = "You didn't provide any arguments.";
     if (command.usage) {
@@ -46,6 +53,7 @@ client.on('message', async (message) => {
     }
     return message.reply(reply);
   }
+
   try {
     command.execute(message, args);
   } catch (error) {
