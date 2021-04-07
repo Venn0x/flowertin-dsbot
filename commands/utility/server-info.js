@@ -1,16 +1,30 @@
+const Discord = require('discord.js');
 module.exports = {
   name: 'server-info',
   args: false,
   guildOnly: true,
   description: 'Sends server info',
   execute(message, args) {
-    const Discord = require('discord.js');
-    const Embed = new Discord.MessageEmbed();
+    const serverInfoEmbed = new Discord.MessageEmbed();
+    let serverDescription = message.member.guild.description;
 
-    //  To add info for server
+    if (serverDescription === null) serverDescription = 'None';
 
-    Embed.setImage(message.channel.guild.bannerURL());
-    console.log(message.channel.guild.bannerURL());
-    message.channel.send(Embed);
+    serverInfoEmbed
+      .setColor('GOLD')
+      .setAuthor(message.member.guild.name, message.member.guild.bannerURL())
+      .setDescription('***Server info***')
+      .addFields(
+        {
+          name: '`Member count`',
+          value: `**${message.member.guild.memberCount}**`,
+        },
+        {
+          name: '`Server description`',
+          value: `**${serverDescription}**`,
+        }
+      );
+
+    message.channel.send(serverInfoEmbed);
   },
 };
